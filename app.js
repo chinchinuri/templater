@@ -14,77 +14,78 @@ async function loadJSON(file) {
     return data;
 }
 
-// Завантаження шаблонів
-async function loadTemplates() {
-    const data = await loadJSON('templates.json');
+// Завантаження даних
+async function loadData() {
+    const data = await loadJSON('data.json');
     if (!data) return;
     templates = data.templates;
-    console.log('Завантажені шаблони:', templates);
+    const structures = data.structures;
+    const content = data.content;
+
+    // Заповнюємо вибіркові списки
     populateTemplateSelect();
+    populateStructureCheckboxes(structures);
+    populateSentenceSelect(content);
 }
 
-// Завантаження структури
-async function loadStructure() {
-    const data = await loadJSON('structure.json');
-    if (!data) return;
-    const structureCheckboxes = document.getElementById('structure-checkboxes');
-    console.log('Завантажені елементи структури:', data.elements);
-
-    data.elements.forEach(element => {
-        const checkbox = document.createElement('div');
-        checkbox.classList.add('form-check');
-        checkbox.innerHTML = `
-            <input class="form-check-input" type="checkbox" value="${element}" id="${element}">
-            <label class="form-check-label" for="${element}">${element}</label>
-        `;
-        structureCheckboxes.appendChild(checkbox);
-    });
-}
-
-// Завантаження речень
-async function loadSentences() {
-    const data = await loadJSON('sentences.json');
-    if (!data) return;
-    sentences = data.sentences;
-    console.log('Завантажені речення:', sentences);
-    populateSentenceSelect();
-}
-
-// Заповнення вибіркових елементів
+// Заповнення вибіркових елементів шаблонів
 function populateTemplateSelect() {
     const templateSelect = document.getElementById('template-select');
     templateSelect.innerHTML = '';
 
     templates.forEach(template => {
         const option = document.createElement('option');
-        option.value = template;
-        option.textContent = template;
+        option.value = template.name;
+        option.textContent = template.name;
         templateSelect.appendChild(option);
     });
-    console.log('Заповнені шаблони:', templateSelect.innerHTML);
+}
+
+// Заповнення чекбоксів структури документа
+function populateStructureCheckboxes(structures) {
+    const structureCheckboxes = document.getElementById('structure-checkboxes');
+    structureCheckboxes.innerHTML = '';
+
+    Object.keys(structures).forEach(key => {
+        const structureElements = structures[key];
+        structureElements.forEach(element => {
+            const checkbox = document.createElement('div');
+            checkbox.classList.add('form-check');
+            checkbox.innerHTML = `
+                <input class="form-check-input" type="checkbox" value="${element}" id="${element}">
+                <label class="form-check-label" for="${element}">${element}</label>
+            `;
+            structureCheckboxes.appendChild(checkbox);
+        });
+    });
 }
 
 // Заповнення речень у випадаючому списку
-function populateSentenceSelect() {
+function populateSentenceSelect(content) {
     const sentenceSelect = document.getElementById('content-select');
     sentenceSelect.innerHTML = '';
 
-    sentences.forEach((sentence, index) => {
-        const option = document.createElement('option');
-        option.value = index;
-        option.textContent = sentence;
-        sentenceSelect.appendChild(option);
+    Object.keys(content).forEach(key => {
+        content[key].forEach((sentence, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            option.textContent = sentence;
+            sentenceSelect.appendChild(option);
+        });
     });
 }
 
 // Вибір шаблону
 function chooseTemplate() {
     const templateSelect = document.getElementById('template-select');
-    const selectedTemplate = templateSelect.value;
+    const selectedTemplateName = templateSelect.value;
+
+    const selectedTemplate = templates.find(template => template.name === selectedTemplateName);
 
     if (selectedTemplate) {
         document.getElementById('template-form').style.display = 'none';
         document.getElementById('structure-form').style.display = 'block';
+        populateStructureCheckboxes(selectedTemplate.structure);
     } else {
         alert('Будь ласка, виберіть шаблон.');
     }
@@ -105,6 +106,18 @@ function addStructure() {
     }
 }
 
+// Завантаження речень
+async function loadSentences() {
+    const data = await loadJSON('data.json');
+    if (!data) return;
+    const content = data.content;
+    sentences = [];
+
+    Object.keys(content).forEach(key => {
+        sentences = sentences.concat(content[key]);
+    });
+}
+
 // Відображення поточного елемента
 function showCurrentElement() {
     if (currentStep < structure.length) {
@@ -119,62 +132,45 @@ function showCurrentElement() {
 // Додавання контенту до поточного елемента
 function addContent() {
     const sentenceSelect = document.getElementById('content-select');
-    const selectedSentence = sentenceSelect.options[sentenceSelect.selectedIndex].textContent;
+    const selectedSentenceIndex = parseInt(sentenceSelect.value);
 
-    if (!structure[currentStep].content) {
-        structure[currentStep] = { title: structure[currentStep], content: [] };
-    }
-    structure[currentStep].content.push(selectedSentence);
-
-    if (structure[currentStep].content.length >= 3) { // наприклад, 3 речення на елемент
+    if (!isNaN(selectedSentenceIndex) && selectedSentenceIndex >= 0) {
+        const selectedSentence = sentences[selectedSentenceIndex];
+        const currentElement = structure[currentStep];
+        const textarea = document.getElementById('document-content');
+        textarea.value += `\n\n{${currentElement}}\n\n${selectedSentence}`;
         currentStep++;
         showCurrentElement();
+    } else {
+        alert('Будь ласка, виберіть речення для додавання до документу.');
     }
 }
 
 // Оновлення шаблону документа
 function updateDocumentTemplate() {
-    const documentTemplate = document.getElementById('document-template');
-    documentTemplate.innerHTML = '';
+    const templateSelect = document.getElementById('template-select');
+    const selectedTemplateName = templateSelect.value;
 
-    structure.forEach(section => {
-        const sectionElement = document.createElement('div');
-        const titleElement = document.createElement('h3');
-        titleElement.textContent = section.title;
-        sectionElement.appendChild(titleElement);
+    const selectedTemplate = templates.find(template => template.name === selectedTemplateName);
 
-        section.content.forEach(sentence => {
-            const sentenceElement = document.createElement('p');
-            sentenceElement.textContent = sentence;
-            sectionElement.appendChild(sentenceElement);
-        });
-
-        documentTemplate.appendChild(sectionElement);
-    });
+    if (selectedTemplate) {
+        const documentContent = document.getElementById('document-content');
+        documentContent.value = selectedTemplate.content;
+    }
 }
 
-// Експорт документа (в простий текстовий формат для початку)
+// Експорт документа
 function exportDocument() {
-    let documentContent = '';
+    const documentContent = document.getElementById('document-content').value;
 
-    structure.forEach(section => {
-        documentContent += section.title + '\n';
-        section.content.forEach(sentence => {
-            documentContent += '  - ' + sentence + '\n';
-        });
-        documentContent += '\n';
-    });
-
-    const blob = new Blob([documentContent], { type: 'text/plain' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'document.txt';
-    link.click();
+    // Ваш код для експорту документа, наприклад, в DOCX або ODT
+    console.log('Експорт документа:\n', documentContent);
 }
 
-// Виклик функцій при завантаженні сторінки
-window.onload = () => {
-    loadTemplates();
-    loadStructure();
-    document.getElementById('template-form').style.display = 'block';
-};
+// Ініціалізація додатку
+async function initializeApp() {
+    await loadData();
+}
+
+// Запуск додатку
+initializeApp();
