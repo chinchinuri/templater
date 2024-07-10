@@ -1,16 +1,5 @@
 let templates, structures, content;
 
-// Перевірка, чи вже оголошені змінні
-if (typeof templates === 'undefined') {
-    var templates;
-}
-if (typeof structures === 'undefined') {
-    var structures;
-}
-if (typeof content === 'undefined') {
-    var content;
-}
-
 // Завантаження даних
 fetch('data.json')
     .then(response => response.json())
