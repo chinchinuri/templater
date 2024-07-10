@@ -1,5 +1,16 @@
 let templates, structures, content;
 
+// Перевірка, чи вже оголошені змінні
+if (typeof templates === 'undefined') {
+    var templates;
+}
+if (typeof structures === 'undefined') {
+    var structures;
+}
+if (typeof content === 'undefined') {
+    var content;
+}
+
 // Завантаження даних
 fetch('data.json')
     .then(response => response.json())
@@ -10,8 +21,32 @@ fetch('data.json')
         initializeTemplateSelect();
     });
 
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded');
+
+    fetch('data.json')
+        .then(response => {
+            console.log('Fetch response received');
+            return response.json();
+        })
+        .then(data => {
+            console.log('Data parsed:', data);
+            templates = data.templates;
+            structures = data.structures;
+            content = data.content;
+            console.log('Data assigned to variables');
+            initializeTemplateSelect();
+        })
+        .catch(error => {
+            console.error('Error loading data:', error);
+            alert('Помилка завантаження даних. Будь ласка, спробуйте оновити сторінку.');
+        });
+});
+
 function initializeTemplateSelect() {
+    console.log('Initializing template select');
     const select = document.getElementById('templateSelect');
+    console.log('Select element:', select);
     select.innerHTML = ''; // Очищаємо попередні опції, якщо вони є
     const defaultOption = document.createElement('option');
     defaultOption.text = 'Виберіть шаблон';
@@ -26,25 +61,6 @@ function initializeTemplateSelect() {
     });
     select.addEventListener('change', onTemplateSelect);
 }
-
-
-let templates, structures, content;
-
-// Завантаження даних
-document.addEventListener('DOMContentLoaded', function() {
-    fetch('data.json')
-        .then(response => response.json())
-        .then(data => {
-            templates = data.templates;
-            structures = data.structures;
-            content = data.content;
-            initializeTemplateSelect();
-        })
-        .catch(error => {
-            console.error('Error loading data:', error);
-            alert('Помилка завантаження даних. Будь ласка, спробуйте оновити сторінку.');
-        });
-});
 
 function onTemplateSelect() {
     const templateIndex = document.getElementById('templateSelect').value;
