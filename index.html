@@ -4,37 +4,64 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Генератор документів</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="generator.js" defer></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        #structure-form, #content-form, #preview-section {
+            display: none;
+        }
+    </style>
 </head>
 <body>
     <div class="container mt-5">
-        <h1>Генератор документів</h1>
-        
-        <div id="step1" class="mb-3">
-            <h2>Крок 1: Вибір шаблону</h2>
-            <select id="templateSelect" class="form-select">
-                <!-- Опції будуть додані за допомогою JavaScript -->
-            </select>
+        <h1 class="text-center">Генератор документів</h1>
+
+        <!-- Вибір шаблону -->
+        <div id="template-form">
+            <h2>Виберіть шаблон документа</h2>
+            <form>
+                <div class="form-group">
+                    <label for="template-select">Шаблон:</label>
+                    <select class="form-control" id="template-select">
+                        <!-- Опції будуть додані динамічно -->
+                    </select>
+                </div>
+                <button type="button" class="btn btn-primary" onclick="chooseTemplate()">Вибрати шаблон</button>
+            </form>
         </div>
 
-        <div id="step2" class="mb-3" style="display: none;">
-            <h2>Крок 2: Вибір елементів структури</h2>
-            <div id="structureElements">
-                <!-- Елементи будуть додані за допомогою JavaScript -->
-            </div>
+        <!-- Етап вибору структури -->
+        <div id="structure-form">
+            <h2>Виберіть елементи для структури документа</h2>
+            <form>
+                <div id="structure-checkboxes">
+                    <!-- Опції будуть додані динамічно -->
+                </div>
+                <button type="button" class="btn btn-primary" onclick="addStructure()">Додати структуру</button>
+            </form>
         </div>
 
-        <div id="step3" class="mb-3" style="display: none;">
-            <h2>Крок 3: Наповнення елементів</h2>
-            <div id="contentElements">
-                <!-- Елементи будуть додані за допомогою JavaScript -->
-            </div>
+        <!-- Етап заповнення контенту -->
+        <div id="content-form">
+            <h2>Заповніть елемент: <span id="current-element"></span></h2>
+            <form>
+                <div class="form-group">
+                    <label for="content-select">Виберіть речення для вставки:</label>
+                    <select class="form-control" id="content-select">
+                        <!-- Опції будуть додані динамічно -->
+                    </select>
+                </div>
+                <button type="button" class="btn btn-primary" onclick="addContent()">Додати контент</button>
+            </form>
         </div>
 
-        <button id="generateBtn" class="btn btn-primary" style="display: none;">Згенерувати документ</button>
-        <button id="exportBtn" class="btn btn-secondary" style="display: none;">Експортувати</button>
+        <!-- Попередній перегляд -->
+        <div id="preview-section">
+            <h2>Попередній перегляд документа</h2>
+            <div id="document-template"></div>
+            <button type="button" class="btn btn-success" onclick="exportDocument()">Експортувати документ</button>
+        </div>
     </div>
+
+    <script src="app.js"></script>
 </body>
 </html>
